@@ -11,22 +11,21 @@ function SympleChat($scope) {
     $scope.peers = [];  
     $scope.messages = []; 
     $scope.messageText = ""; 
+    $scope.errorText = ""; 
+    $scope.isLoading = false;
 
     $(document).ready(function() {            
         
         //
         // Client
 
-        $scope.client = new Symple.Client({
-            url: 'http://localhost:4500',
-            peer: {
-                //user: 'myusername',
-                //name: 'My Name',
-                group: 'public' 
-            }});    
+        $scope.client = new Symple.Client(CLIENT_OPTIONS); 
             
         $scope.client.on('announce', function(peer) {
             //console.log('announce:', peer)
+            
+            $scope.isLoading = false;  
+            $scope.$apply();  
         });
 
         $scope.client.on('presence', function(p) {
@@ -60,16 +59,16 @@ function SympleChat($scope) {
                     var e = $('#incoming-call-modal')
                     e.find('.caller').text('@' + c.from.user)
                     e.find('.accept').unbind('click').click(function() {
-                      c.status = 200;
-                      $scope.remoteVideoPeer = c.from;
-                      $scope.client.respond(c);
-                      $scope.$apply();
-                      e.modal('hide')      
+                        c.status = 200;
+                        $scope.remoteVideoPeer = c.from;
+                        $scope.client.respond(c);
+                        $scope.$apply();
+                        e.modal('hide')      
                     })
                     e.find('.reject').unbind('click').click(function() {
-                      c.status = 500;
-                      $scope.client.respond(c);
-                      e.modal('hide')  
+                        c.status = 500;
+                        $scope.client.respond(c);
+                        e.modal('hide')  
                     })
                     e.modal('show')   
                 }    
@@ -131,12 +130,16 @@ function SympleChat($scope) {
 
         $scope.client.on('disconnect', function() {
             console.log('disconnected')
-            alert('Disconnected from the server')
+            $scope.isLoading = false;  
+            $scope.errorText = 'Disconnected from the server';
+            $scope.$apply();
         });
 
         $scope.client.on('error', function(error, message) {
-            console.log('Connection error:', error, message)
-            alert('Cannot connect to the server.')
+            console.log('connection error:', error, message)
+            $scope.isLoading = false;  
+            $scope.errorText = 'Cannot connect to the server.';
+            $scope.$apply();
         });
 
         $scope.client.on('addPeer', function(peer) {
@@ -167,11 +170,12 @@ function SympleChat($scope) {
     
     //
     // Messaging 
+    
     $scope.setMessageTarget = function(user) {
         console.log('setMessageTarget', user)
         $scope.directUser = user ? user : ''
-        $('.direct-user').text('@' + $scope.directUser)
-        //alert(a)
+        $('#post-message .direct-user').text('@' + $scope.directUser)
+        $('#post-message .message-text')[0].focus()
     } 
         
     $scope.sendMessage = function() {            
@@ -181,18 +185,25 @@ function SympleChat($scope) {
             direct: $scope.directUser
         });
         $scope.messages.push({
-           direct: $scope.directUser,
-           user: $scope.handle,
-           data: $scope.messageText,
-           time: Symple.formatTime(new Date)
+            direct: $scope.directUser,
+            user: $scope.handle,
+            data: $scope.messageText,
+            time: Symple.formatTime(new Date)
         });
         $scope.messageText = "";          
     };
             
     // Login
     $scope.login = function() {
+        if (!$scope.handle || $scope.handle.length < 3) {
+            alert('Please enter 3 or more alphanumeric characters.');            
+            return;
+        }
+    
         $scope.client.options.peer.user = $scope.handle;
-        $scope.client.connect();         
+        $scope.client.connect();   
+        $scope.isLoading = true;  
+        //$scope.$apply();    
     }
         
          

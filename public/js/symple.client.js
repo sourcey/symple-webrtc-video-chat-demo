@@ -131,7 +131,9 @@ Symple.Client = Symple.Dispatcher.extend({
             });
         });
         this.socket.on('error', function() {
-            self.setError('connect');       
+            // This is triggered when any transport fails, so not necessarily fatal
+            //self.setError('connect');          
+            self.doDispatch('connect');   
         });
         this.socket.on('connecting', function() {
             console.log('Symple Client: Connecting');            
@@ -142,8 +144,9 @@ Symple.Client = Symple.Dispatcher.extend({
             self.doDispatch('reconnecting');
         });
         this.socket.on('connect_failed', function() {
-            console.log('Symple Client: Connect Failed');            
+            console.log('Symple Client: Connect failed');            
             self.doDispatch('connect_failed');
+            self.setError('connect');   
         });
         this.socket.on('disconnect', function() {
             console.log('Symple Client: Disconnect');
@@ -309,7 +312,7 @@ Symple.Client = Symple.Dispatcher.extend({
         return undefined;
     },
 
-    // Sets the client to an error state and and dispatches an error event
+    // Sets the client to an error state and disconnect
     setError: function(error, message) {
         console.log('Symple Client: Client error: ', error, message);
         //if (this.error == error)

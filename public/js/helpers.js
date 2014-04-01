@@ -2,14 +2,10 @@ function createPlayer($scope, origin, selector) {
     var player = new Symple.Player({
         element: selector,
         engine: 'WebRTC', 
-        rtcConfig: {
-          'iceServers': [
-            {'url': 'stun:stun.l.google.com:19302'}
-          ]
-        },
+        rtcConfig: WEBRTC_CONFIG,
         mediaConstraints: {
           'mandatory': {
-            'OfferToReceiveAudio':false, 
+            'OfferToReceiveAudio':true, 
             'OfferToReceiveVideo':true
           }
         },
