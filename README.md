@@ -23,7 +23,8 @@ Symple is a presence and messaging protocol which is semantically similar to XMP
 ## TODO
 
 1. Store last 50 messages via json - store via server using a group cache options or flat file?
-1. Sync with twitter API to get user info and profile photo for handles
+2  Gruntfile for compressing scripts
+3. Sync with twitter API to get user info and profile photo for handles
 
 ## Contact
 

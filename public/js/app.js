@@ -136,7 +136,7 @@ function SympleChat($scope) {
 
         $scope.client.on('error', function(error, message) {
             console.log('Connection error:', error, message)
-            alert('Cannot connect to server: ' + message)
+            alert('Cannot connect to the server.')
         });
 
         $scope.client.on('addPeer', function(peer) {
