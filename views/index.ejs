@@ -1,9 +1,7 @@
 <html ng-app>
-<head>
-            
-<!--          
-  This live demo showcases the awesomeness of Symple. To get started choose someone from the left sidebar to video chat with, or join the conversation... 
--->
+<head>        
+<title>Symple WebRTC Live Video Chat Demo</title>
+<meta name="description" content="This live demo showcases the awesomeness of Symple and WebRTC. To get started choose someone from the left sidebar to video chat with, or just join the conversation...">
 
 <script>
   
@@ -84,7 +82,7 @@
                 <h3 class="panel-title">People</h3>
               </div>
               <ul class="list-group">
-                  <li class="list-group-item list-group-item-warning" ng-show="!isLoggedIn()"><small>Not logged in...</small></li>
+                  <li class="list-group-item list-group-item-warning" ng-show="!isLoggedIn()"><small>Please log in...</small></li>
                   <li class="list-group-item" ng-repeat="peer in peers">
                       <div class="btn-group btn-group-xs pull-right">
                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
