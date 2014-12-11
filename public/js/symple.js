@@ -207,6 +207,14 @@ var Symple = {
             pad(date.getSeconds()).toString() + ' ' +
             pad(date.getDate()).toString() + '/' +
             pad(date.getMonth()).toString();
+    },
+    
+    // Debug logger
+    log: function () {
+        if (typeof console != "undefined" && 
+            typeof console.log != "undefined") {
+            console.log.apply(console, arguments);
+        }
     }
 };
 
@@ -303,12 +311,12 @@ Symple.Dispatcher = Symple.Class.extend({
     },
 
     dispatch: function() {
-        //console.log('Dispatching: ', arguments);
+        //Symple.log('Dispatching: ', arguments);
         var event = arguments[0];
         var args = Array.prototype.slice.call(arguments, 1);
         if (typeof this.listeners[event] != 'undefined') {
             for (var i = 0; i < this.listeners[event].length; i++) {
-                //console.log('Dispatching: Function: ', this.listeners[event][i]);
+                //Symple.log('Dispatching: Function: ', this.listeners[event][i]);
                 if (this.listeners[event][i].constructor == Function)
                     this.listeners[event][i].apply(this, args);
             }

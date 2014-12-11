@@ -2,9 +2,9 @@ Symple.Media = {
     engines: {}, // Object containing references for candidate selection
     
     registerEngine: function(engine) {
-        console.log('Register media engine: ', engine)
+        Symple.log('Register media engine: ', engine)
         if (!engine.name || typeof engine.preference == 'undefined' || typeof engine.support == 'undefined') {
-            console.log('Cannot register invalid engine: ', engine)
+            Symple.log('Cannot register invalid engine: ', engine)
             return false;
         }   
         this.engines[engine.id] = engine;
@@ -37,7 +37,7 @@ Symple.Media = {
             engine = this.engines[item];
             if (engine.preference == 0) 
                 continue;
-            console.log('Symple Media: Supported: ', engine.name, engine.support)            
+            Symple.log('Symple Media: Supported: ', engine.name, engine.support)            
             if (engine.support == true)        
                 arr.push(engine)
         }
@@ -55,7 +55,7 @@ Symple.Media = {
     preferredCompatibleEngine: function(format) {    
         var arr = this.compatibleEngines(format), engine;  
         engine = arr.length ? arr[0] : null;
-        console.log('Symple Media: Preferred Engine: ', engine);
+        Symple.log('Symple Media: Preferred Engine: ', engine);
         return engine; 
     },
 
@@ -93,7 +93,7 @@ Symple.Media = {
     // Rescales video dimensions maintaining perspective
     // TODO: Different aspect ratios
     rescaleVideo: function(srcW, srcH, maxW, maxH) {
-        //console.log('Symple Player: Rescale Video: ', srcW, srcH, maxW, maxH);
+        //Symple.log('Symple Player: Rescale Video: ', srcW, srcH, maxW, maxH);
         var maxRatio = maxW / maxH;
         var srcRatio = 1.33; //srcW / srcH;
         if (srcRatio < maxRatio) {
@@ -109,7 +109,7 @@ Symple.Media = {
     // Basic checking for ICE style streaming candidates
     // TODO: Latency checks and best candidate switching
     checkCandidate: function(url, fn) {
-        console.log('Symple Media: Checking candidate: ', url);
+        Symple.log('Symple Media: Checking candidate: ', url);
 
         var xhr;
         if (window.XMLHttpRequest) {
@@ -122,11 +122,11 @@ Symple.Media = {
         }
 
         xhr.onreadystatechange = function() {
-            //console.log('Symple Media: Candidate state', xhr.readyState, xhr.status);
+            //Symple.log('Symple Media: Candidate state', xhr.readyState, xhr.status);
 
             if (xhr.readyState == 2) {
                 if (fn) {
-                    console.log('Symple Media: Candidate result: ', xhr.readyState, xhr.status);
+                    Symple.log('Symple Media: Candidate result: ', xhr.readyState, xhr.status);
                     fn(url, xhr.status == 200);
                     fn = null;
 
@@ -139,7 +139,7 @@ Symple.Media = {
             }
             else if (xhr.readyState == 4/* && xhr.status != 0*/) {
                 if (fn) {
-                    console.log('Symple Media: Candidate result: ', xhr.readyState, xhr.status);
+                    Symple.log('Symple Media: Candidate result: ', xhr.readyState, xhr.status);
                     fn(url, /*xhr.status == 200*/true);
                     fn = null;
                 }
@@ -160,7 +160,7 @@ Symple.Player = Symple.Class.extend({
     init: function(options) {
         // TODO: Use our own options extend
         this.options = $.extend({ //Symple.extend({
-            htmlRoot:       '/static/symple/client',
+            htmlRoot:       '/javascripts/symple',
             element:        '.symple-player:first',
             
             format:         'MJPEG',      // The media format to use (MJPEG, FLV, Speex, ...)
@@ -223,7 +223,7 @@ Symple.Player = Symple.Class.extend({
         this.bindEvents();
         this.playing = false;
 
-        console.log(this.options.template)
+        Symple.log(this.options.template)
 
         //this.setState('stopped');
         //var self = this;
@@ -260,7 +260,7 @@ Symple.Player = Symple.Class.extend({
     // Player Controls
     //
     play: function(params) {
-        console.log('Symple Player: Play: ', params)
+        Symple.log('Symple Player: Play: ', params)
         try {    
             if (!this.engine)
                 this.setup();
@@ -281,7 +281,7 @@ Symple.Player = Symple.Class.extend({
     },
 
     stop: function() {
-        console.log('Symple Player: Stop')
+        Symple.log('Symple Player: Stop')
         if (this.state != 'stopped') {
             if (this.engine)
                 this.engine.stop(); // engine updates state to stopped
@@ -295,7 +295,7 @@ Symple.Player = Symple.Class.extend({
     },
 
     setState: function(state, message) {
-        console.log('Symple Player: Set state:', this.state, '=>', state, message)
+        Symple.log('Symple Player: Set state:', this.state, '=>', state, message)
         if (this.state == state)
             return;
         
@@ -322,7 +322,7 @@ Symple.Player = Symple.Class.extend({
     // Display an overlayed player message
     // error, warning, info
     displayMessage: function(type, message) {
-        console.log('Symple Player: Display message:', type, message)
+        Symple.log('Symple Player: Display message:', type, message)
         if (message) {
             this.message.html('<p class="' + type + '-message">' + message + '</p>').show();
         }
@@ -403,12 +403,12 @@ Symple.Player.Engine = Symple.Class.extend({
     },
     
     setError: function(error) {
-        console.log('Symple Player Engine: Error:', error);
+        Symple.log('Symple Player Engine: Error:', error);
         this.setState('error', error);
     },
     
     onRemoteCandidate: function(candidate) {
-        console.log('Symple Player Engine: Remote candidates not supported.');
+        Symple.log('Symple Player Engine: Remote candidates not supported.');
     },
 
     updateFPS: function() {
@@ -469,17 +469,17 @@ Symple.Player.Engine = Symple.Class.extend({
             css.left = css.left ? css.left : 0;
             css.top = css.top ? css.top : 0;
         }
-        console.log('Symple Player: Setting Size: ', css);
+        Symple.log('Symple Player: Setting Size: ', css);
 
         this.screen.css(css);
 
         //var e = this.element.find('#player-screen');
-          //console.log('refresh: scaled:', size)
-          console.log('refresh: screenWidth:', this.options.screenWidth)
-          console.log('refresh: width:', this.screen.width())
-          console.log('refresh: screenHeight:', this.options.screenHeight)
-          console.log('refresh: height:', this.screen.height())
-          console.log('refresh: css:', css)
+          //Symple.log('refresh: scaled:', size)
+          Symple.log('refresh: screenWidth:', this.options.screenWidth)
+          Symple.log('refresh: width:', this.screen.width())
+          Symple.log('refresh: screenHeight:', this.options.screenHeight)
+          Symple.log('refresh: height:', this.screen.height())
+          Symple.log('refresh: css:', css)
     },
      
     getBestEngineForFormat: function(format) {
