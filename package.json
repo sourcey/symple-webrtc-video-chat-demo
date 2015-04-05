@@ -2,8 +2,6 @@
   "name": "symple-client-webrtc-demo",
   "title": "Symple Client WebRTC Demo",
   "version": "0.1.0",
-  "name": "application-name",
-  "version": "0.0.1",
   "private": true,
   "scripts": {
     "start": "node app.js"
