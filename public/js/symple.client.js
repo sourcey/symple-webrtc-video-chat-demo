@@ -3,10 +3,10 @@
 //
 Symple.Client = Symple.Dispatcher.extend({
     init: function(options) {
-        this.options = $.extend({
-            url:     options.url ? options.url : 'http://localhost:4000',
+        this.options = Symple.extend({
+            url:     options.url || 'http://localhost:4000',
             secure:  options.url && (
-                         options.url.indexOf('https') == 0 || 
+                         options.url.indexOf('https') == 0 ||
                          options.url.indexOf('wss') == 0) ? true : false,
             token:   undefined     // pre-arranged server session token
             //timeout: 0           // set for connection timeout
@@ -21,7 +21,7 @@ Symple.Client = Symple.Dispatcher.extend({
     // If the server is down the 'error' event will fire.
     connect: function() {
         Symple.log('Symple Client: Connecting: ', this.options);
-        self = this; 
+        self = this;
         if (this.socket)
             throw 'The client socket is not null'
         this.socket = io.connect(this.options.url, this.options);
@@ -39,16 +39,16 @@ Symple.Client = Symple.Dispatcher.extend({
                     self.setError('auth', res);
                     return;
                 }
-                self.peer = $.extend(self.peer, res.data);
+                self.peer = Symple.extend(self.peer, res.data); //$.extend
                 self.roster.add(res.data);
                 self.sendPresence({ probe: true });
                 self.doDispatch('announce', res);
                 self.socket.on('message', function(m) {
                     //Symple.log('Symple Client: Receive: ', m);
-                    if (typeof(m) == 'object') {     
+                    if (typeof(m) == 'object') {
                         switch(m.type) {
                             case 'message':
-                                m = new Symple.Message(m); 
+                                m = new Symple.Message(m);
                                 break;
                             case 'command':
                                 m = new Symple.Command(m);
@@ -70,12 +70,12 @@ Symple.Client = Symple.Dispatcher.extend({
                                 o.type = o.type || 'message';
                                 break;
                         }
-                    
+
                         if (typeof(m.from) != 'string') {
                             Symple.log('Symple Client: Invalid sender address: ', m);
                             return;
                         }
-                            
+
                         // Replace the from attribute with the full peer object.
                         // This will only work for peer messages, not server messages.
                         var rpeer = self.roster.get(m.from);
@@ -83,7 +83,7 @@ Symple.Client = Symple.Dispatcher.extend({
                             m.from = rpeer;
                         else
                             Symple.log('Symple Client: Got message from unknown peer: ', m);
-                        
+
                         // Dispatch to the application
                         self.doDispatch(m.type, m);
                     }
@@ -91,24 +91,24 @@ Symple.Client = Symple.Dispatcher.extend({
             });
         });
         this.socket.on('error', function() {
-            // This is triggered when any transport fails, 
+            // This is triggered when any transport fails,
             // so not necessarily fatal
-            //self.setError('connect');          
-            self.doDispatch('connect');   
+            //self.setError('connect');
+            self.doDispatch('connect');
         });
         this.socket.on('connecting', function() {
-            Symple.log('Symple Client: Connecting');            
+            Symple.log('Symple Client: Connecting');
             self.doDispatch('connecting');
         });
         this.socket.on('reconnecting', function() {
-            Symple.log('Symple Client: Reconnecting');            
+            Symple.log('Symple Client: Reconnecting');
             self.doDispatch('reconnecting');
         });
         this.socket.on('connect_failed', function() {
             // Called when all transports fail
-            Symple.log('Symple Client: Connect failed');            
+            Symple.log('Symple Client: Connect failed');
             self.doDispatch('connect_failed');
-            self.setError('connect');   
+            self.setError('connect');
         });
         this.socket.on('disconnect', function() {
             Symple.log('Symple Client: Disconnect');
@@ -151,8 +151,8 @@ Symple.Client = Symple.Dispatcher.extend({
         Symple.log('Symple Client: Sending: ', m);
         this.socket.json.send(m);
     },
-    
-    respond: function(m) {      
+
+    respond: function(m) {
         m.to = m.from;
         this.send(m);
     },
@@ -193,7 +193,7 @@ Symple.Client = Symple.Dispatcher.extend({
     },
 
     // Adds a capability for our current peer
-    addCapability: function(name, value) {        
+    addCapability: function(name, value) {
         var peer = this.peer;
         if (peer) {
             if (typeof value == 'undefined')
@@ -212,42 +212,42 @@ Symple.Client = Symple.Dispatcher.extend({
     // Removes a capability from our current peer
     removeCapability: function(name) {
         var peer = this.peer;
-        if (peer && typeof peer.capabilities != 'undefined' && 
+        if (peer && typeof peer.capabilities != 'undefined' &&
             typeof peer.capabilities[name] != 'undefined') {
             delete peer.capabilities[key];
-            this.sendPresence();    
+            this.sendPresence();
             //var idx = peer.capabilities.indexOf(name)
             //if (idx != -1) {
             //    peer.capabilities.pop(name);
-            //    this.sendPresence();                
+            //    this.sendPresence();
             //}
-        }        
+        }
     },
-    
+
     // Checks if a peer has a specific capbility and returns a boolean
     hasCapability: function(id, name) {
         var peer = this.roster.get(id)
         if (peer) {
-            if (typeof peer.capabilities != 'undefined' && 
+            if (typeof peer.capabilities != 'undefined' &&
                 typeof peer.capabilities[name] != 'undefined')
                 return peer.capabilities[name] !== false;
-            if (typeof peer.data != 'undefined' && 
-                typeof peer.data.capabilities != 'undefined' && 
+            if (typeof peer.data != 'undefined' &&
+                typeof peer.data.capabilities != 'undefined' &&
                 typeof peer.data.capabilities[name] != 'undefined')
                 return peer.data.capabilities[name] !== false;
         }
         return false;
     },
-    
+
     // Checks if a peer has a specific capbility and returns the value
     getCapability: function(id, name) {
         var peer = this.roster.get(id)
         if (peer) {
-            if (typeof peer.capabilities != 'undefined' && 
+            if (typeof peer.capabilities != 'undefined' &&
                 typeof peer.capabilities[name] != 'undefined')
                 return peer.capabilities[name];
-            if (typeof peer.data != 'undefined' && 
-                typeof peer.data.capabilities != 'undefined' && 
+            if (typeof peer.data != 'undefined' &&
+                typeof peer.data.capabilities != 'undefined' &&
                 typeof peer.data.capabilities[name] != 'undefined')
                 return peer.data.capabilities[name];
         }
@@ -307,8 +307,8 @@ Symple.Client = Symple.Dispatcher.extend({
                     Symple.match(this.listeners[event][i].filters, data[0])) {
                     this.listeners[event][i].fn.apply(this, data);
                     if (this.listeners[event][i].after != 'undefined') {
-                        this.listeners[event][i].after.apply(this, data);   
-                    }                 
+                        this.listeners[event][i].after.apply(this, data);
+                    }
                     return true;
                 }
             }
@@ -327,7 +327,7 @@ Symple.Roster = Symple.Manager.extend({
         this._super();
         this.client = client;
     },
-    
+
     // Add a peer object to the roster
     add: function(peer) {
         Symple.log('Symple Roster: Adding: ', peer);
@@ -346,10 +346,10 @@ Symple.Roster = Symple.Manager.extend({
             this.client.doDispatch('removePeer', peer);
         return peer;
     },
-    
+
     // Get the peer matching an ID or address string: user@group/id
     get: function(id) {
-    
+
         // Handle IDs
         peer = this._super(id); // id = Symple.parseIDFromAddress(id) || id;
         if (peer)
@@ -358,7 +358,7 @@ Symple.Roster = Symple.Manager.extend({
         // Handle address strings
         return this.findOne(Symple.parseAddress(id));
     },
-    
+
     update: function(data) {
         if (!data || !data.id)
             return;
@@ -369,9 +369,9 @@ Symple.Roster = Symple.Manager.extend({
         else
             this.add(data);
     }
-        
+
     // Get the peer matching an address string: user@group/id
-    //getForAddr: function(addr) {        
+    //getForAddr: function(addr) {
     //    var o = Symple.parseAddress(addr);
     //    if (o && o.id)
     //        return this.get(o.id);
@@ -393,28 +393,28 @@ Symple.parseIDFromAddress = function(str) {
 Symple.parseAddress = function(str) {
     var addr = {}, base,
         arr = str.split("/")
-        
+
     if (arr.length < 2) // no id
-        base = str;        
+        base = str;
     else { // has id
-        addr.id = arr[1];   
-        base = arr[0];   
+        addr.id = arr[1];
+        base = arr[0];
     }
-    
+
     arr = base.split("@")
     if (arr.length < 2) // group only
-        addr.group = base;         
+        addr.group = base;
     else { // group and user
         addr.user = arr[0];
         addr.group  = arr[1];
     }
-        
+
     return addr;
 }
 
 Symple.buildAddress = function(peer, defaultGroup) {
-    return (peer.user ? (peer.user + '@') : '') + 
-        (peer.group ? peer.group : defaultGroup) + '/' + 
+    return (peer.user ? (peer.user + '@') : '') +
+        (peer.group ? peer.group : defaultGroup) + '/' +
         (peer.id ? peer.id : '');
 }
 
@@ -458,7 +458,7 @@ Symple.Command.prototype = {
     params: function() {
         return this['node'].split(':');
     },
-    
+
     param: function(n) {
         return this.params()[n-1];
     },

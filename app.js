@@ -1,83 +1,55 @@
+//
+/// Setup the Symple server
 
-/**
- * Module dependencies
- */
+var symple = require('symple');
+var sy = new symple();
+sy.loadConfig(__dirname + '/config.json'); // see config.json for options
+sy.init();
+console.log('Symple server listening on port ' + sy.config.port);
+
+
+//
+/// Setup the client web server
 
 var express = require('express'),
-  //routes = require('./routes'),
-  //api = require('./routes/api'),
-  http = require('http'),
-  path = require('path');
-
-var app = module.exports = express();
-var server = require('http').createServer(app);
-//var io = require('socket.io').listen(server);
-
-/**
- * Configuration
- */
-
-// all environments
-app.set('port', process.env.PORT || 4450);
-app.set('views', __dirname + '/views');
+  path = require('path'),
+  redis = require('redis'),
+  client = redis.createClient(),
+  app = express(),
+  serverPort = parseInt(sy.config.port)
+  clientPort = serverPort - 1;
+  
+app.set('port', clientPort);
 app.set('view engine', 'ejs');
-//app.use(express.logger('dev'));
-//app.use(express.bodyParser());
-//app.use(express.methodOverride());
-app.use(express.static(path.join(__dirname, 'public')));
-//app.use(app.router);
+app.set('views', './');
+app.use(express.static('public'));
+app.use(express.static('./'));
+app.use(express.static('../'));
 
-// development only
-if (app.get('env') === 'development') {
-  //app.use(express.errorHandler());
-}
+app.get('/', function (req, res) {
+  // Create a random token to identify this client
+  // NOTE: This method of generating unique tokens is not secure, so don't use
+  // it in production ;)
+  var token = '' + Math.random();
 
-// production only
-if (app.get('env') === 'production') {
-  // TODO
-};
+  // Create the arbitrary user session object here
+  var session = {
+    // user: 'demo',
+    // name: 'Demo User',
+    group: 'public'
+  }
 
+  // Store the user session on Redis
+  // This will be sent to the Symple server to authenticate the session
+  client.set('symple:session:' + token, JSON.stringify(session), redis.print);
 
-/**
- * Routes
- */
- 
-
-app.get('/', function(req, res){
-    res.render('index', {locals: {page_id: 'home'}});
+  // Render the response
+  res.render('index', { 
+    port: serverPort, 
+    token: token, 
+    peer: session });
 });
 
-/*
-// serve index and view partials
-app.get('/', routes.index);
-app.get('/partials/:name', routes.partials);
-
-// JSON API
-app.get('/api/name', api.name);
-
-// redirect all others to the index (HTML5 history)
-app.get('*', routes.index);
-
-// Socket.io Communication
-io.sockets.on('connection', require('./routes/socket'));
-
-io.sockets.on('connection', function(socket) {    
-
-    console.log('connection', socket.id)
-        
-    // Message
-    socket.on('message', function(m, ack) {
-        console.log('message', m)
-        //io.sockets.emit('message', m);
-        socket.broadcast.emit('message', m);
-    });
-});
-*/
-
-/**
- * Start Server
- */
-
-server.listen(app.get('port'), function () {
+app.listen(app.get('port'), function () {
   console.log('Express server listening on port ' + app.get('port'));
 });

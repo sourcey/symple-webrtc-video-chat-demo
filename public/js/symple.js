@@ -1,8 +1,9 @@
 // -----------------------------------------------------------------------------
-// HTML5 video streaming server
-//  - Uses WebSockets, C++, Node.js and HTML5 JavaScript
+// Symple JavaScript Client
 //
 var Symple = {
+    // Version
+    VERSION: "0.9.0",
 
     // Return an array of nested objects matching
     // the given key/value strings.
@@ -220,8 +221,7 @@ var Symple = {
 
 
 // -----------------------------------------------------------------------------
-// OOP Base Class
-// Simple JavaScript Inheritance By John Resig
+// Symple OOP Base Class
 //    
 (function(Symple) {
     var initializing = false, 
