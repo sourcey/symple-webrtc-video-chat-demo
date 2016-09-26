@@ -1,8 +1,8 @@
 //
 /// Setup the Symple server
 
-var symple = require('symple');
-var sy = new symple();
+var Symple = require('symple');
+var sy = new Symple();
 sy.loadConfig(__dirname + '/config.json'); // see config.json for options
 sy.init();
 console.log('Symple server listening on port ' + sy.config.port);
@@ -18,13 +18,13 @@ var express = require('express'),
   app = express(),
   serverPort = parseInt(sy.config.port)
   clientPort = serverPort - 1;
-  
+
 app.set('port', clientPort);
 app.set('view engine', 'ejs');
-app.set('views', './');
-app.use(express.static('public'));
-app.use(express.static('./'));
-app.use(express.static('../'));
+app.set('views', __dirname + '/');
+app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/'));
+app.use(express.static(__dirname + '/../'));
 
 app.get('/', function (req, res) {
   // Create a random token to identify this client
@@ -44,9 +44,9 @@ app.get('/', function (req, res) {
   client.set('symple:session:' + token, JSON.stringify(session), redis.print);
 
   // Render the response
-  res.render('index', { 
-    port: serverPort, 
-    token: token, 
+  res.render('index', {
+    port: serverPort,
+    token: token,
     peer: session });
 });
 

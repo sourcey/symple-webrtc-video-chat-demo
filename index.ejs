@@ -1,7 +1,7 @@
 <html ng-app>
 <head>
 <title>Symple WebRTC Live Video Chat Demo</title>
-<meta name="description" content="This demo showcases how to use Symple to create a WebRTC chat application. To get started choose someone from the left sidebar to video chat with, or just join the conversation...">
+<meta name="description" content="This demo showcases how to use Symple to create a WebRTC chat application.">
 
 <script>
 
@@ -24,9 +24,10 @@
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
 <script type="text/javascript" src="https://cdn.socket.io/socket.io-1.3.7.js"></script>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<!-- <script type="text/javascript" src="/js/socket.io.js"></script> -->
 <script type="text/javascript" src="/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="/js/symple.js"></script>
-<script type="text/javascript" src="/js/symple.client.js"></script>
+<script type="text/javascript" src="../src/symple.js"></script>
+<script type="text/javascript" src="../src/symple.client.js"></script>
 <script type="text/javascript" src="/js/symple.player.js"></script>
 <script type="text/javascript" src="/js/symple.player.webrtc.js"></script>
 <script type="text/javascript" src="/js/helpers.js"></script>
@@ -50,7 +51,7 @@
     <nav id="nav">
       <h1 id="logo"><a href="http://symple.sourcey.com">Symple WebRTC Video Chat</a></h1>
       <a href="http://sourcey.com/symple-webrtc-video-chat-demo">about</a>
-      <a href="https://github.com/sourcey/symple-client-webrtc-demo">code</a>
+      <a href="https://github.com/sourcey/symple-client/tree/master/demo">code</a>
     </nav>
 
     <div class="alert alert-danger" ng-show="errorText" ng-bind="errorText">You have been disconnected from the server</div>

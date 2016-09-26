@@ -3,11 +3,11 @@
   "nodeId" : 1,
 
   /* The port to listen on */
-  "port" : 4451,
+  "port" : 4500,
 
   /* Allow anonymous connections */
   "anonymous" : false,
-  
+
   /* Session ttl in minutes */
   "sessionTtl" : 15,
 
