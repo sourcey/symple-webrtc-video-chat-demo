@@ -1,44 +1,44 @@
 Symple.Media = {
     engines: {}, // Object containing references for candidate selection
-    
+
     registerEngine: function(engine) {
         Symple.log('Register media engine: ', engine)
         if (!engine.name || typeof engine.preference == 'undefined' || typeof engine.support == 'undefined') {
             Symple.log('Cannot register invalid engine: ', engine)
             return false;
-        }   
+        }
         this.engines[engine.id] = engine;
         return true;
     },
-    
+
     hasEngine: function(id) {
         return typeof this.engines[id] == 'object';
     },
-    
+
     // Checks support for a given engine
     supportsEngine: function(id) {
         // Check support for engine
         return !!(this.hasEngine(id) && this.engines[id].support);
     },
-    
+
     // Checks support for a given format
     supportsFormat: function(format) {
         // Check support for engine
         return !!preferredEngine(format);
     },
-    
+
     // Returns a list of compatible engines sorted by preference
-    // The optional format argument further filters by engines 
+    // The optional format argument further filters by engines
     // which don't support the given media format.
-    compatibleEngines: function(format) {          
+    compatibleEngines: function(format) {
         var arr = [], engine;
         // Reject non supported or disabled
-        for (var item in this.engines) {   
+        for (var item in this.engines) {
             engine = this.engines[item];
-            if (engine.preference == 0) 
+            if (engine.preference == 0)
                 continue;
-            Symple.log('Symple Media: Supported: ', engine.name, engine.support)            
-            if (engine.support == true)        
+            Symple.log('Symple Media: Supported: ', engine.name, engine.support)
+            if (engine.support == true)
                 arr.push(engine)
         }
         // Sort by preference
@@ -48,15 +48,15 @@ Symple.Media = {
         });
         return arr
     },
-    
+
     // Returns the highest preference compatible engine
-    // The optional format argument further filters by engines 
+    // The optional format argument further filters by engines
     // which don't support the given media format.
-    preferredCompatibleEngine: function(format) {    
-        var arr = this.compatibleEngines(format), engine;  
+    preferredCompatibleEngine: function(format) {
+        var arr = this.compatibleEngines(format), engine;
         engine = arr.length ? arr[0] : null;
         Symple.log('Symple Media: Preferred Engine: ', engine);
-        return engine; 
+        return engine;
     },
 
     // Returns the optimal video resolution for the current device
@@ -74,26 +74,26 @@ Symple.Media = {
         var height = width * 0.75;
         return [width, height];
     },
-    
-    buildURL: function(params) { 
-        var query = [], url, addr = params.address;       
-        url = addr.scheme + '://' + addr.host + ':' + addr.port + (addr.uri ? addr.uri : '/');                     
+
+    buildURL: function(params) {
+        var query = [], url, addr = params.address;
+        url = addr.scheme + '://' + addr.host + ':' + addr.port + (addr.uri ? addr.uri : '/');
         for (var p in params) {
-            if (p == 'address') 
+            if (p == 'address')
                 continue;
             query.push(encodeURIComponent(p) + "=" + encodeURIComponent(params[p]));
         }
         query.push('rand=' + Math.random());
         url += '?';
-        url += query.join("&");  
+        url += query.join("&");
         return url;
-        
+
     },
-    
+
     // Rescales video dimensions maintaining perspective
     // TODO: Different aspect ratios
     rescaleVideo: function(srcW, srcH, maxW, maxH) {
-        //Symple.log('Symple Player: Rescale Video: ', srcW, srcH, maxW, maxH);
+        //Symple.log('symple:player: Rescale Video: ', srcW, srcH, maxW, maxH);
         var maxRatio = maxW / maxH;
         var srcRatio = 1.33; //srcW / srcH;
         if (srcRatio < maxRatio) {
@@ -105,8 +105,8 @@ Symple.Media = {
         }
         return [srcW, srcH];
     },
-        
-    // Basic checking for ICE style streaming candidates
+
+    // Basic checking for remote ICE style streaming candidates
     // TODO: Latency checks and best candidate switching
     checkCandidate: function(url, fn) {
         Symple.log('Symple Media: Checking candidate: ', url);
@@ -122,7 +122,7 @@ Symple.Media = {
         }
 
         xhr.onreadystatechange = function() {
-            //Symple.log('Symple Media: Candidate state', xhr.readyState, xhr.status);
+            // Symple.log('Symple Media: Candidate state', xhr.readyState, xhr.status);
 
             if (xhr.readyState == 2) {
                 if (fn) {
@@ -154,27 +154,23 @@ Symple.Media = {
 //  Symple Player
 //
 //  Online video streaming for everyone
-//  Requires JQuery
+//  Requires jQuery
 //
 Symple.Player = Symple.Class.extend({
     init: function(options) {
         // TODO: Use our own options extend
-        this.options = $.extend({ //Symple.extend({
+        this.options = Symple.extend({ //$.extend({ //
+            format:         'MJPEG',      // The media format to use (MJPEG, FLV, Speex, ...)
+            engine:         undefined,    // Engine class name, can be specified or auto detected
+
             htmlRoot:       '/javascripts/symple',
             element:        '.symple-player:first',
-            
-            format:         'MJPEG',      // The media format to use (MJPEG, FLV, Speex, ...)
-            engine:         undefined,    // Engine class name, can be specified or auto detected 
-            
-            //screenWidth:    '100%',       // player screen css width (percentage or pixel value)
-            //screenHeight:   '100%',       // player screen css height (percentage or pixel value)
-            //showStatus:     false,
-            //assertSupport:  false,        // throws an exception if no browser support for given engine
+            fullscreenElement: undefined,
 
             // Callbacks
             onCommand:       function(player, cmd) { },
             onStateChange:   function(player, state) { },
-            
+
             // Markup
             template: '\
             <div class="symple-player">\
@@ -198,17 +194,17 @@ Symple.Player = Symple.Class.extend({
         }
         if (!this.element.length)
             throw 'Player element not found';
-        
+
         this.screen = this.element.find('.symple-player-screen');
         if (!this.screen.length)
             throw 'Player screen element not found';
-        
+
         // Depreciated: Screen is always 100% unless speified otherwise via CSS
         //if (this.options.screenWidth)
         //    this.screen.width(this.options.screenWidth);
         //if (this.options.screenHeight)
         //    this.screen.height(this.options.screenHeight);
-            
+
         this.message = this.element.find('.symple-player-message')
         if (!this.message.length)
             throw 'Player message element not found';
@@ -223,7 +219,7 @@ Symple.Player = Symple.Class.extend({
         this.bindEvents();
         this.playing = false;
 
-        Symple.log(this.options.template)
+        // Symple.log(this.options.template)
 
         //this.setState('stopped');
         //var self = this;
@@ -234,37 +230,37 @@ Symple.Player = Symple.Class.extend({
 
     setup: function() {
         var id = this.options.engine;
-        
+
         // Ensure the engine is configured
         if (!id)
-            throw "Streaming engine not configured. Please set 'options.engine'";  
-        
+            throw "Streaming engine not configured. Please set 'options.engine'";
+
         // Ensure the engine exists
         if (!Symple.Media.hasEngine(id))
-            throw "Streaming engine not available: " + id;                          
+            throw "Streaming engine not available: " + id;
         if (typeof Symple.Player.Engine[id] == 'undefined')
-            throw "Streaming engine not found: " + id;       
-            
-        // Ensure the engine is supported  
-        if (!Symple.Media.supportsEngine(id))     
-            throw "Streaming engine not supported: " + id;   
-                 
-        // Instantiate the engine          
+            throw "Streaming engine not found: " + id;
+
+        // Ensure the engine is supported
+        if (!Symple.Media.supportsEngine(id))
+            throw "Streaming engine not supported: " + id;
+
+        // Instantiate the engine
         this.engine = new Symple.Player.Engine[id](this);
-        this.engine.setup();  
-        
-        this.element.addClass('engine-' + id.toLowerCase())    
+        this.engine.setup();
+
+        this.element.addClass('engine-' + id.toLowerCase())
     },
-    
+
     //
     // Player Controls
     //
     play: function(params) {
-        Symple.log('Symple Player: Play: ', params)
-        try {    
+        Symple.log('symple:player: Play: ', params)
+        try {
             if (!this.engine)
                 this.setup();
-        
+
             if (this.state != 'playing' //&&
                 // The player may be set to loading state by the
                 // outside application before play is called.
@@ -274,14 +270,14 @@ Symple.Player = Symple.Class.extend({
                 this.engine.play(params); // engine updates state to playing
             }
         } catch (e) {
-            this.setState('error');      
+            this.setState('error');
             this.displayMessage('error', e)
             throw e;
-        } 
+        }
     },
 
     stop: function() {
-        Symple.log('Symple Player: Stop')
+        Symple.log('symple:player: Stop')
         if (this.state != 'stopped') {
             if (this.engine)
                 this.engine.stop(); // engine updates state to stopped
@@ -294,11 +290,21 @@ Symple.Player = Symple.Class.extend({
         this.element.remove();
     },
 
+    mute: function(flag) {
+        flag = !!flag;
+        Symple.log('SympleWebcam: Mute:', flag);
+
+        if (this.engine &&
+            this.engine.mute)
+            this.engine.mute(flag);
+        this.element[flag ? 'addClass' : 'removeClass']('muted');
+    },
+
     setState: function(state, message) {
-        Symple.log('Symple Player: Set state:', this.state, '=>', state, message)
+        Symple.log('symple:player: Set state:', this.state, '=>', state);
         if (this.state == state)
             return;
-        
+
         this.state = state;
         this.displayStatus(null);
         this.playing = state == 'playing';
@@ -322,7 +328,7 @@ Symple.Player = Symple.Class.extend({
     // Display an overlayed player message
     // error, warning, info
     displayMessage: function(type, message) {
-        Symple.log('Symple Player: Display message:', type, message)
+        Symple.log('symple:player: Display message:', type, message)
         if (message) {
             this.message.html('<p class="' + type + '-message">' + message + '</p>').show();
         }
@@ -352,6 +358,12 @@ Symple.Player = Symple.Class.extend({
               case 'stop':
                   this.stop();
                   break;
+              case 'mute':
+                  this.mute(true);
+                  break;
+              case 'unmute':
+                  this.mute(false);
+                  break;
               case 'fullscreen':
                   this.toggleFullScreen();
                   break;
@@ -362,14 +374,23 @@ Symple.Player = Symple.Class.extend({
     getButton: function(cmd) {
         return this.element.find('.symple-player-controls [rel="' + cmd + '"]');
     },
-    
+
     // TODO: Toggle actual player element
-    toggleFullScreen: function() {  
-        if (Symple.runVendorMethod(document, "FullScreen") || Symple.runVendorMethod(document, "IsFullScreen")) {
+    toggleFullScreen: function() {
+        // if (!document.fullscreenElement) {
+        //     document.documentElement.requestFullscreen();
+        // } else {
+        //     if (document.exitFullscreen) {
+        //         document.exitFullscreen();
+        //     }
+        // }
+        var fullscreenElement = $(this.options.fullscreenElement)[0] || this.element[0];
+        if (Symple.runVendorMethod(document, "FullScreen") ||
+            Symple.runVendorMethod(document, "IsFullScreen")) {
             Symple.runVendorMethod(document, "CancelFullScreen");
         }
         else {
-            Symple.runVendorMethod(this.element[0], "RequestFullScreen");
+            Symple.runVendorMethod(fullscreenElement, "RequestFullScreen");
         }
     }
 })
@@ -380,7 +401,7 @@ Symple.Player = Symple.Class.extend({
 //
 Symple.Player.Engine = Symple.Class.extend({
     init: function(player) {
-        this.player = player;        
+        this.player = player;
         this.fps = 0;
         this.seq = 0;
     },
@@ -388,7 +409,7 @@ Symple.Player.Engine = Symple.Class.extend({
     support: function() { return true; },
     setup: function() {},
     destroy: function() {},
-    play: function(params) { 
+    play: function(params) {
         this.params = params || {};
         if (!this.params.url && typeof(params.address) == 'object')
             this.params.url = this.buildURL();
@@ -401,12 +422,12 @@ Symple.Player.Engine = Symple.Class.extend({
     setState: function(state, message) {
         this.player.setState(state, message);
     },
-    
+
     setError: function(error) {
         Symple.log('Symple Player Engine: Error:', error);
         this.setState('error', error);
     },
-    
+
     onRemoteCandidate: function(candidate) {
         Symple.log('Symple Player Engine: Remote candidates not supported.');
     },
@@ -422,156 +443,17 @@ Symple.Player.Engine = Symple.Class.extend({
         }
         this.seq++;
     },
-    
+
     displayFPS: function() {
-        this.updateFPS()
+        this.updateFPS();
         this.player.displayStatus(this.delta + " ms (" + this.fps + " fps)");
     },
-    
-    buildURL: function() {    
+
+    buildURL: function() {
         if (!this.params)
-            throw 'Streaming parameters not set'
+            throw 'Streaming parameters not set';
         if (!this.params.address)
             this.params.address = this.player.options.address;
         return Symple.Media.buildURL(this.params);
     }
 });
-
-
-
-
-    /*
-    refresh: function() {
-        if (this.engine)
-            this.engine.refresh();
-    },
-
-    refresh: function() {
-        var css = { position: 'relative' };
-        if (this.options.screenWidth == '100%' ||
-            this.options.screenHeight == '100%') {
-            var size = this.rescaleVideo(this.screen.outerWidth(), this.screen.outerHeight(),
-                this.element.outerWidth(), this.element.outerHeight());
-            css.width = size[0];
-            css.height = size[1];
-            css.left = this.element.outerWidth() / 2 - css.width / 2;
-            css.top = this.element.outerHeight() / 2 - css.height / 2;
-            css.left = css.left ? css.left : 0;
-            css.top = css.top ? css.top : 0;
-            if (this.engine)
-                this.engine.resize(css.width, css.height);
-        }
-        else {
-            css.width = this.options.screenWidth;
-            css.height = this.options.screenHeight;
-            css.left = this.element.outerWidth() / 2 - this.options.screenWidth / 2;
-            css.top = this.element.outerHeight() / 2 - this.options.screenHeight / 2;
-            css.left = css.left ? css.left : 0;
-            css.top = css.top ? css.top : 0;
-        }
-        Symple.log('Symple Player: Setting Size: ', css);
-
-        this.screen.css(css);
-
-        //var e = this.element.find('#player-screen');
-          //Symple.log('refresh: scaled:', size)
-          Symple.log('refresh: screenWidth:', this.options.screenWidth)
-          Symple.log('refresh: width:', this.screen.width())
-          Symple.log('refresh: screenHeight:', this.options.screenHeight)
-          Symple.log('refresh: height:', this.screen.height())
-          Symple.log('refresh: css:', css)
-    },
-     
-    getBestEngineForFormat: function(format) {
-        var ua = navigator.userAgent;
-        var isMobile = Symple.isMobileDevice();
-        var engine = null;
-        
-        // TODO: Use this function with care as it is not complete.      
-        // TODO: Register engines which we can iterate to check support.
-        // Please feel free to update this function with your test results!  
-        
-        //
-        // MJPEG
-        //
-        if (format == "MJPEG") {
-
-            
-            // Most versions of Safari has great MJPEG support.
-            // BUG: The MJPEG socket is not closed until the page is refreshed.
-            if (ua.match(/(Safari|iPhone|iPod|iPad)/)) {
-                
-                // iOS 6 breaks native MJPEG support.
-                if (Symple.iOSVersion() > 6)
-                    engine = 'MJPEGBase64MXHR';
-                else
-                    engine = 'MJPEG';
-            }
-
-            // Firefox to the rescue! Nag user's to install firefox if MJPEG
-            // streaming is unavailable.
-            else if(ua.match(/(Mozilla)/))
-                engine = 'MJPEG';
-
-            // Android's WebKit has disabled multipart HTTP requests for some
-            // reason: http://code.google.com/p/android/issues/detail?id=301
-            else if(ua.match(/(Android)/))
-                engine = 'MJPEGBase64MXHR';
-
-            // BlackBerry doesn't understand multipart/x-mixed-replace ... duh
-            else if(ua.match(/(BlackBerry)/))
-                engine = 'PseudoMJPEG';
-
-            // Opera does not support mjpeg MJPEG, but their home grown image
-            // processing library is super fast so pseudo streaming is nearly
-            // as fast as other native MJPEG implementations!
-            else if(ua.match(/(Opera)/))
-                engine = isMobile ? 'MJPEGBase64MXHR' : 'Flash'; //PseudoMJPEG
-
-            // Internet Explorer... nuff said
-            else if(ua.match(/(MSIE)/))
-                engine = isMobile ? 'PseudoMJPEG' : 'Flash';
-
-            // Display a nag screen to install a real browser if we are in
-            // pseudo streaming mode.
-            if (engine == 'PseudoMJPEG') { //!forcePseudo &&
-                this.displayMessage('warning',
-                    'Your browser does not support native streaming so playback preformance will be severely limited. ' +
-                    'For the best streaming experience please <a href="http://www.mozilla.org/en-US/firefox/">download Firefox</a> .');
-             }
-        }
-         
-         
-        //
-        // FLV
-        //
-        else if (format == "FLV") {
-            if (Symple.isMobileDevice())
-                throw 'FLV not supported on mobile devices.'
-            engine = 'Flash';                
-        }
-        
-        else 
-            throw 'Unknown media format: ' + format
-        
-        return engine;
-        if (!document.fullscreenElement &&    // alternative standard method
-            !document.mozFullScreenElement && !document.webkitFullscreenElement) {  // current working methods
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            } else if (document.documentElement.mozRequestFullScreen) {
-                document.documentElement.mozRequestFullScreen();
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-            }
-        } 
-        else {
-            if (document.cancelFullScreen) {
-                document.cancelFullScreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
-            } else if (document.webkitCancelFullScreen) {
-                document.webkitCancelFullScreen();
-            }
-        }
-        */

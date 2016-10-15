@@ -22,9 +22,7 @@ var express = require('express'),
 app.set('port', clientPort);
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/');
-app.use(express.static(__dirname + '/public'));
-app.use(express.static(__dirname + '/'));
-app.use(express.static(__dirname + '/../'));
+app.use(express.static(__dirname + '/assets'));
 
 app.get('/', function (req, res) {
   // Create a random token to identify this client
