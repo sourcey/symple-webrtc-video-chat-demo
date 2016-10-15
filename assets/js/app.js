@@ -13,6 +13,7 @@ function SympleChat($scope) {
     $scope.messageText = "";
     $scope.errorText = "";
     $scope.isLoading = false;
+    $scope.disableLocalAudio = false; // set true to prevent local feedback loop
 
     $(document).ready(function() {
 
@@ -34,7 +35,7 @@ function SympleChat($scope) {
         });
 
         $scope.client.on('message', function(m) {
-            //console.log('message:', m)
+            console.log('message:', m)
 
             // Normal Message
             if (!m.direct || m.direct == $scope.handle) {
@@ -53,7 +54,7 @@ function SympleChat($scope) {
         });
 
         $scope.client.on('command', function(c) {
-            //console.log('command:', c)
+            console.log('command:', c)
 
             if (c.node == 'call:init') {
 
@@ -66,12 +67,12 @@ function SympleChat($scope) {
                         $scope.remoteVideoPeer = c.from;
                         $scope.client.respond(c);
                         $scope.$apply();
-                        e.modal('hide')
+                        e.modal('hide');
                     })
                     e.find('.reject').unbind('click').click(function() {
                         c.status = 500;
                         $scope.client.respond(c);
-                        e.modal('hide')
+                        e.modal('hide');
                     })
                     e.modal('show')
                 }
@@ -92,7 +93,7 @@ function SympleChat($scope) {
         });
 
         $scope.client.on('event', function(e) {
-            //console.log('event:', e)
+            console.log('event:', e)
 
             // Only handle events from the remoteVideoPeer
             if (!$scope.remoteVideoPeer || $scope.remoteVideoPeer.id != e.from.id) {
@@ -229,7 +230,7 @@ function SympleChat($scope) {
 
             $scope.client.sendCommand({
                 node: 'call:init',
-                to: { user: user }
+                to: user
             })
         }
     }
@@ -239,7 +240,7 @@ function SympleChat($scope) {
 
             // Init local video player
             $scope.localPlayer = createPlayer($scope, 'caller', '#video .local-video');
-            $scope.localPlayer.play({ localMedia: true, disableAudio: true });
+            $scope.localPlayer.play({ localMedia: true, disableAudio: $scope.disableLocalAudio });
 
             // TODO: Set false on session end or Symple error
             $scope.localVideoPlaying = true;
