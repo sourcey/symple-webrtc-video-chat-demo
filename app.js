@@ -3,7 +3,7 @@
 
 var Symple = require('symple');
 var sy = new Symple();
-sy.loadConfig(__dirname + '/config.json'); // see config.json for options
+sy.loadConfig(__dirname + '/symple.json'); // see symple.json for options
 sy.init();
 console.log('Symple server listening on port ' + sy.config.port);
 
@@ -23,6 +23,8 @@ app.set('port', clientPort);
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/');
 app.use(express.static(__dirname + '/assets'));
+app.use(express.static(__dirname + '/node_modules/symple-client/src'));
+app.use(express.static(__dirname + '/node_modules/symple-client-player/src'));
 
 app.get('/', function (req, res) {
   // Create a random token to identify this client
