@@ -16,7 +16,7 @@ Symple currently has client implementations in [JavaScript](https://github.com/s
 
 1. Install dependencies: `npm install`
 2. Fire up the server: `node app`
-3. And point your browser to: `http://localhost:4500`
+3. And point your browser to: `http://localhost:4499`
 
 ## Hacking
 
