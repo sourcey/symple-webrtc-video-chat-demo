@@ -109,19 +109,19 @@ function SympleChat($scope) {
                         $scope.remotePlayer = createPlayer($scope, 'answerer', '#video .remote-video');
                         $scope.remotePlayer.play();
                     }
-                    $scope.remotePlayer.engine.onRemoteSDP(e.sdp);
+                    $scope.remotePlayer.engine.recvRemoteSDP(e.sdp);
                 }
                 if (e.sdp.type == 'answer') {
-                    $scope.localPlayer.engine.onRemoteSDP(e.sdp);
+                    $scope.localPlayer.engine.recvRemoteSDP(e.sdp);
                 }
             }
 
             // ICE Candidate
             else if (e.name == 'call:ice:candidate') {
                 if (e.origin == 'answerer')
-                    $scope.localPlayer.engine.onRemoteCandidate(e.candidate);
+                    $scope.localPlayer.engine.recvRemoteCandidate(e.candidate);
                 else if (e.origin == 'caller')
-                    $scope.remotePlayer.engine.onRemoteCandidate(e.candidate);
+                    $scope.remotePlayer.engine.recvRemoteCandidate(e.candidate);
                 else
                     alert('Unknown candidate origin');
             }
