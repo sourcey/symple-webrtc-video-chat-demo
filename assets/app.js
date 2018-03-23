@@ -65,6 +65,7 @@ function SympleChat($scope) {
                     e.find('.accept').unbind('click').click(function() {
                         c.status = 200;
                         $scope.remoteVideoPeer = c.from;
+                        console.log('RESP', c)
                         $scope.client.respond(c);
                         $scope.$apply();
                         e.modal('hide');
@@ -110,19 +111,19 @@ function SympleChat($scope) {
                         $scope.remotePlayer = createPlayer($scope, 'answerer', '#video .remote-video');
                         $scope.remotePlayer.play();
                     }
-                    $scope.remotePlayer.engine.recvRemoteSDP(e.sdp);
+                    $scope.remotePlayer.recvRemoteSDP(e.sdp);
                 }
                 if (e.sdp.type == 'answer') {
-                    $scope.localPlayer.engine.recvRemoteSDP(e.sdp);
+                    $scope.localPlayer.recvRemoteSDP(e.sdp);
                 }
             }
 
             // ICE Candidate
             else if (e.name == 'call:ice:candidate') {
                 if (e.origin == 'answerer')
-                    $scope.localPlayer.engine.recvRemoteCandidate(e.candidate);
+                    $scope.localPlayer.recvRemoteCandidate(e.candidate);
                 else if (e.origin == 'caller')
-                    $scope.remotePlayer.engine.recvRemoteCandidate(e.candidate);
+                    $scope.remotePlayer.recvRemoteCandidate(e.candidate);
                 else
                     alert('Unknown candidate origin');
             }

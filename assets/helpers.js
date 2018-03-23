@@ -1,11 +1,11 @@
 function createPlayer($scope, origin, selector) {
-    var player = new Symple.Player({
-        element: selector,
-        engine: 'WebRTC', 
+    var element = document.querySelector(selector)
+    var player = new window.Symple.Player.WebRTC(element, {
+        initiator: origin == 'caller',
         rtcConfig: WEBRTC_CONFIG,
-        mediaConstraints: {
+        sdpConstraints: {
           'mandatory': {
-            'OfferToReceiveAudio':true, 
+            'OfferToReceiveAudio':true,
             'OfferToReceiveVideo':true
           }
         },
@@ -13,8 +13,8 @@ function createPlayer($scope, origin, selector) {
             player.displayStatus(state);
         }
     });
-    player.setup();        
-    player.engine.sendLocalSDP = function(desc) { 
+    // player.setup();
+    player.on('sdp', function(desc) {
         $scope.client.send({
             name: 'call:ice:sdp',
             to: $scope.remoteVideoPeer,
@@ -22,8 +22,8 @@ function createPlayer($scope, origin, selector) {
             type: 'event',
             sdp: desc
         })
-    }
-    player.engine.sendLocalCandidate = function(cand) { 
+    })
+    player.on('candidate', function(cand) {
         $scope.client.send({
             name: 'call:ice:candidate',
             to: $scope.remoteVideoPeer,
@@ -31,7 +31,7 @@ function createPlayer($scope, origin, selector) {
             type: 'event',
             candidate: cand
         })
-    }    
+    })
     return player;
 }
 

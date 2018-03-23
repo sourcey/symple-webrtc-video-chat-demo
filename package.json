@@ -1,14 +1,14 @@
 {
   "name": "symple-webrtc-video-chat-demo",
   "title": "Symple WebRTC Video Chat Demo",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "scripts": {
     "start": "node app.js"
   },
   "dependencies": {
-    "ejs": "^2.5.7",
-    "express": "^4.16.3",
-    "redis": "^2.8.0",
+    "ejs": "*",
+    "express": "*",
+    "redis": "*",
     "symple": "*",
     "symple-client": "*",
     "symple-client-player": "*"
